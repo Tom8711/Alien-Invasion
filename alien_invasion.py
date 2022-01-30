@@ -104,33 +104,45 @@ class AlienInvasion:
         """Select difficulty by pressing the buttons"""
         easy_clicked = self.easy_button.rect.collidepoint(mouse_pos)
         if easy_clicked and not self.stats.game_active:
-            # Change the collors of all the buttons
-            self.easy_button.change_button_color("Easy", "red")
-            self.medium_button.change_button_color("Medium", "green")
-            self.hard_button.change_button_color("Hard", "green")
-
-            # Change dynamic settings to easy.
-            self.settings.initialize_dynamic_easy_settings()
+            self._easy_clicked()
 
         medium_clicked = self.medium_button.rect.collidepoint(mouse_pos)
         if medium_clicked and not self.stats.game_active:
-            # Change the collors of all the buttons
-            self.easy_button.change_button_color("Easy", "green")
-            self.medium_button.change_button_color("Medium", "red")
-            self.hard_button.change_button_color("Hard", "green")
-
-            # Change dynamic settings to medium (default)
-            self.settings.initialize_dynamic_medium_settings()
+            self._medium_clicked()
 
         hard_clicked = self.hard_button.rect.collidepoint(mouse_pos)
         if hard_clicked and not self.stats.game_active:
-            # Change the collors of all the buttons
-            self.easy_button.change_button_color("Easy", "green")
-            self.medium_button.change_button_color("Medium", "green")
-            self.hard_button.change_button_color("Hard", "red")
+            self._hard_clicked()
 
-            # Change dynamic settings to hard.
-            self.settings.initialize_dynamic_hard_settings()
+    def _easy_clicked(self):
+        """Change all button colors and change settings to easy."""
+        # Change the collors of all the buttons
+        self.easy_button.change_button_color("Easy", "red")
+        self.medium_button.change_button_color("Medium", "green")
+        self.hard_button.change_button_color("Hard", "green")
+
+        # Change dynamic settings to easy.
+        self.settings.initialize_dynamic_easy_settings()
+
+    def _medium_clicked(self):
+        """Change all button colors and change settings to medium."""
+        # Change the collors of all the buttons
+        self.easy_button.change_button_color("Easy", "green")
+        self.medium_button.change_button_color("Medium", "red")
+        self.hard_button.change_button_color("Hard", "green")
+
+        # Change dynamic settings to medium (default)
+        self.settings.initialize_dynamic_medium_settings()        
+
+    def _hard_clicked(self):
+        """Change all button colors and change settings to hard."""
+        # Change the collors of all the buttons
+        self.easy_button.change_button_color("Easy", "green")
+        self.medium_button.change_button_color("Medium", "green")
+        self.hard_button.change_button_color("Hard", "red")
+
+        # Change dynamic settings to hard.
+        self.settings.initialize_dynamic_hard_settings()
 
     def _check_play_button(self, mouse_pos):
         """Start a new game when the player clicks Play."""
@@ -164,9 +176,25 @@ class AlienInvasion:
         """Reset game stats and start a new game"""
         # Reset the game statistics
         self.stats.reset_stats()
+        # Reprep the resettet scoreboard images.
+        self._prep_scoreboard_images()
+        # Set aliens, bullets and ship to the starting position.
+        self._Reset_aliens_bullets_ship()
+
+        # Hide the mouse cursor.
+        pygame.mouse.set_visible(False)
+        # Start the game.
+        self.stats.game_active = True
+
+    def _prep_scoreboard_images(self):
+        """Prep the scoreboard images at the start of the game"""
         self.sb.prep_score()
         self.sb.prep_level()
         self.sb.prep_ships()
+
+    def _Reset_aliens_bullets_ship(self):
+        """Remove aliens and bullets. Start a new alien fleet. 
+            Center the ship"""
 
         # Get rid of any remaining alines and bullets.
         self.aliens.empty()
@@ -175,13 +203,6 @@ class AlienInvasion:
         # Create a new fleet and center the ship.
         self._create_fleet()
         self.ship.center_ship()
-
-        # Hide the mouse cursor.
-        pygame.mouse.set_visible(False)
-
-        self.stats.game_active = True
-
-
 
     def _fire_bullet(self):
         """Create a new bullet and add it to the bullets group."""
@@ -213,8 +234,14 @@ class AlienInvasion:
             self.sb.prep_score()
             self.sb.check_high_score()
 
+        # Check if aliens are left. Start a new level.
+        self._start_new_level()
+
+    def _start_new_level(self):
+        """Start a new level when all the aliens have been shot."""
         if not self.aliens:
-            # Destroy existing bullets and create new fleet.
+            # Destroy existing bullets and create new fleet. Increase the level,
+            # the speed and prep the level image.
             self.bullets.empty()
             self._create_fleet()
             self.settings.increase_speed()
@@ -243,13 +270,8 @@ class AlienInvasion:
             self.stats.ship_left -= 1
             self.sb.prep_ships()
 
-            # Get rid of any remaining aliens and bullets.
-            self.bullets.empty()
-            self.aliens.empty()
-
-            # Create a new fleet and center the ship.
-            self._create_fleet()
-            self.ship.center_ship()
+            # Get rid of any remaining aliens and bullets and recenter ship.
+            self._Reset_aliens_bullets_ship()
 
             # Pause.
             sleep(0.5)
@@ -309,24 +331,30 @@ class AlienInvasion:
             alien.rect.y += self.settings.fleet_drop_speed
         self.settings.fleet_direction *= -1
 
-    def _update_screen(self):
-        """Update images on the screen, and flip to the new screen."""
+    def _draw_ship_aliens_bullets(self):
+        """Draw the moving objects: ship, aliens, bullets."""
         self.screen.fill(self.settings.bg_color)
         self.ship.blitme()
         for bullet in self.bullets.sprites():
             bullet.draw_bullet()
         self.aliens.draw(self.screen)
 
-        # Draw the score information.
-        self.sb.show_score()
-
-        # Draw the play button if the game is inactive.
+    def _draw_buttons(self):
+        """Draw the buttons on the screen when game is not active."""
         if not self.stats.game_active:
             self.play_button.draw_button()
             self.easy_button.draw_button()
             self.medium_button.draw_button()
             self.hard_button.draw_button()
 
+    def _update_screen(self):
+        """Update images on the screen, and flip to the new screen."""
+        self._draw_ship_aliens_bullets()
+        # Draw the score information.
+        self.sb.show_score()
+        # Draw the play button if the game is inactive.
+        self._draw_buttons()
+        # Loop the update screen.
         pygame.display.flip()
 
 if __name__ == "__main__":
