@@ -12,6 +12,7 @@ from ship import Ship
 from bullet import Bullet
 from alien import Alien
 from scoreboard import Scoreboard
+from shield import Shield
 
 class AlienInvasion:
     """Overall class to manage game assets and behavior"""
@@ -37,6 +38,7 @@ class AlienInvasion:
         self.bullets = pygame.sprite.Group()
         self.aliens = pygame.sprite.Group()
         self.alien_bullets = pygame.sprite.Group()
+        self.shields = pygame.sprite.Group()
 
         # Create the first fleet.
         self._create_fleet()
@@ -206,6 +208,7 @@ class AlienInvasion:
         # Create a new fleet and center the ship.
         self._create_fleet()
         self.ship.center_ship()
+        self._initiate_shields(self.settings.no_shields)
 
     def _fire_bullet(self):
         """Create a new bullet and add it to the bullets group."""
@@ -250,6 +253,14 @@ class AlienInvasion:
         if alien_bullet_hit_ship:
             self._ship_hit()
 
+        # Check if alien bullets or ship bullets collide with shield.
+        pygame.sprite.groupcollide(self.alien_bullets, self.shields,
+                True, True)
+        pygame.sprite.groupcollide(self.bullets, self.shields,
+                True, True)
+        # Check if aliens collide with shields.
+        pygame.sprite.groupcollide(self.aliens, self.shields, True, True)
+
     def _start_new_level(self):
         """Start a new level when all the aliens have been shot."""
         if not self.aliens:
@@ -257,7 +268,9 @@ class AlienInvasion:
             # the speed and prep the level image.
             self.bullets.empty()
             self.alien_bullets.empty()
+            self.shields.empty()
             self._create_fleet()
+            self._initiate_shields(self.settings.no_shields)
             self.settings.increase_speed()
             self.stats.level += 1
             self.sb.prep_level()
@@ -288,8 +301,6 @@ class AlienInvasion:
                 new_alien_bullet.rect.midtop = alien.rect.midbottom
                 new_alien_bullet.y = new_alien_bullet.rect.y
                 self.alien_bullets.add(new_alien_bullet)
-
-
 
     def _ship_hit(self):
         """Respond to the ship being hit by an alien"""
@@ -350,6 +361,30 @@ class AlienInvasion:
         alien.rect.y = alien_height + 2 * alien.rect.height * row_number
         self.aliens.add(alien)
 
+    def _initiate_shields(self, number_of_rows):
+        """Initiate the shields"""
+        shield = Shield(self)
+        shield_width, shield_height = shield.rect.size
+        # Calculate the number of space available.
+        available_space_x = (self.screen.get_rect().width - (2 * shield_width))
+        number_shields = available_space_x // (3 * shield_width)
+
+        # Set up two rows of shields
+        for column_number in range(number_shields):
+            for row_number in range(number_of_rows):
+                self._create_shield(row_number, column_number)
+                
+    def _create_shield(self, row_number, column_number):
+        """Create a shield and place it at the correct position"""
+        shield = Shield(self)
+        shield_width, shield_height = shield.rect.size
+        # Determine the x-location of the shield
+        shield.rect.x = shield_width + 4 * shield_width * column_number
+        # Determine the y-location of the shields
+        shield.rect.y = (self.screen.get_rect().height - 
+                (2 * self.ship.rect.height + 2 * shield_height * row_number))
+        self.shields.add(shield)
+
     def _check_fleet_edges(self):
         """Respond appropiately if any aliens have reached an edge"""
         for alien in self.aliens.sprites():
@@ -363,8 +398,8 @@ class AlienInvasion:
             alien.rect.y += self.settings.fleet_drop_speed
         self.settings.fleet_direction *= -1
 
-    def _draw_ship_aliens_bullets(self):
-        """Draw the moving objects: ship, aliens, bullets."""
+    def _draw_ship_aliens_bullets_shields(self):
+        """Draw the moving objects: ship, aliens, bullets, shields."""
         # Draw the ship.
         self.ship.blitme()
         # Draw the ship's bullets.
@@ -375,6 +410,8 @@ class AlienInvasion:
         # Draw the alien's bullets.
         for bullet in self.alien_bullets.sprites():
             bullet.draw_bullet()
+        for shield in self.shields.sprites():
+            shield.draw_shield()
 
     def _draw_buttons(self):
         """Draw the buttons on the screen when game is not active."""
@@ -387,7 +424,7 @@ class AlienInvasion:
     def _update_screen(self):
         """Update images on the screen, and flip to the new screen."""
         self.screen.fill(self.settings.bg_color)
-        self._draw_ship_aliens_bullets()
+        self._draw_ship_aliens_bullets_shields()
         # Draw the score information.
         self.sb.show_score()
         # Draw the play button if the game is inactive.

@@ -21,6 +21,11 @@ class Settings:
         self.fleet_drop_speed = 10
         self.alien_bullet_speed = 0.3
 
+        # Shield settings
+        self.shield_width = 100
+        self.shield_height = 30
+        self.shield_color = (0, 0, 255)
+
         # How quickly the game speeds up.
         self.speedup_scale = 1.1
 
@@ -38,10 +43,14 @@ class Settings:
         self.bullet_speed = 1.5
         self.alien_speed = 0.6
         self.alien_points = 50
+        # Based on random number pick. The higher the number the less frequent
+        # the bullets fire
         self.alien_fire_rate = 20000
 
         # Fleet direction of 1 represents right; -1 represents left
         self.fleet_direction = 1
+        # Number of shields per column
+        self.no_shields = 1
 
     def initialize_dynamic_easy_settings(self):
         """Initialize settings that change throughout the game."""
@@ -53,6 +62,8 @@ class Settings:
 
         # Fleet direction of 1 represents right; -1 represents left
         self.fleet_direction = 1
+        # Number of shields per column
+        self.no_shields = 2
 
     def initialize_dynamic_hard_settings(self):
         """Initialize settings that change throughout the game."""
@@ -64,6 +75,8 @@ class Settings:
 
         # Fleet direction of 1 represents right; -1 represents left
         self.fleet_direction = 1
+        # Number of shields per column
+        self.no_shields = 0
 
     def increase_speed(self):
         """Increase speed settings and alien point values."""
