@@ -222,8 +222,10 @@ class AlienInvasion:
         """Update position of bullets and get rid of old bullets"""
         #Update bullet position.
         self.bullets.update()
-        for bullets in self.alien_bullets:
-            bullets.update_alien_bullet()
+        for bullet in self.alien_bullets.copy():
+            bullet.update_alien_bullet()
+            if bullet.rect.top >= self.screen.get_rect().height:
+                self.alien_bullets.remove(bullet)
         
         #Get rid of bullets that have disappeared.
         for bullet in self.bullets.copy():
