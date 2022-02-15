@@ -1,3 +1,5 @@
+from flask import Flask
+
 import sys
 import json
 from time import sleep
@@ -434,7 +436,8 @@ class AlienInvasion:
         # Loop the update screen.
         pygame.display.flip()
 
-if __name__ == "__main__":
-    #Make a game instance, and run the game.
+@app.route("/")
+def alien_azure():
     ai = AlienInvasion()
     ai.run_game()
+    
