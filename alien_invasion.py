@@ -1,11 +1,10 @@
-from flask import Flask
-
 import sys
 import json
 from time import sleep
 from random import randint
 
 import pygame
+import requests
 
 from settings import Settings
 from game_stats import GameStats
@@ -15,8 +14,6 @@ from bullet import Bullet
 from alien import Alien
 from scoreboard import Scoreboard
 from shield import Shield
-
-app = Flask(__name__)
 
 class AlienInvasion:
     """Overall class to manage game assets and behavior"""
@@ -384,8 +381,10 @@ class AlienInvasion:
         """Create a shield and place it at the correct position"""
         shield = Shield(self)
         shield_width, shield_height = shield.rect.size
+        screen_width = self.screen.get_rect().width
         # Determine the x-location of the shield
-        shield.rect.x = shield_width + 4 * shield_width * column_number
+        shield.rect.x = column_number * (screen_width // 3) + screen_width /3
+        #shield_width + 4 * shield_width * column_number
         # Determine the y-location of the shields
         shield.rect.y = (self.screen.get_rect().height - 
                 (2 * self.ship.rect.height + 2 * shield_height * row_number))
@@ -438,8 +437,7 @@ class AlienInvasion:
         # Loop the update screen.
         pygame.display.flip()
 
-@app.route("/")
-def alien_azure():
+if __name__ == "__main__":
+    #Make a game instance, and run the game.
     ai = AlienInvasion()
     ai.run_game()
-    
